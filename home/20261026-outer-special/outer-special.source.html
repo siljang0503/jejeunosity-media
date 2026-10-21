@@ -7,7 +7,7 @@
 var JOS_CONFIG = {
   // 이미지 폴더 주소(끝에 / 포함). GitHub siljang0503/jejeunosity-media 커밋 da0fa46을 jsDelivr로 고정해서 씁니다.
   // 이미지를 바꾸면 저장소에 다시 올리고 새 커밋 번호로 이 줄만 바꿉니다.
-  asset: 'https://cdn.jsdelivr.net/gh/siljang0503/jejeunosity-media@da0fa46deb76af36b2304df5df318dabc1470232/home/20261026-outer-special/',
+  asset: 'https://cdn.jsdelivr.net/gh/siljang0503/jejeunosity-media@05e806c12f8bd9cc4ac3b11fb6d440caac8c0263/home/20261026-outer-special/',
   open: '2026-10-26T10:00:00+09:00',   // 오픈 시각(한국시간)
   end:  '2026-11-01T23:59:59+09:00',   // 종료 시각(한국시간)
   lockPrice: true,                      // 오픈 전 최종가를 서리 효과로 가림
@@ -23,7 +23,7 @@ var JOS_CONFIG = {
   ],
   adult: [
     ['a1', 573, '스키니트 자켓',     147200, 89900],
-    ['a2', 570, '레더클락 자켓',     211200, 139000],
+    ['a2_open_A', 570, '레더클락 자켓', 211200, 139000],
     ['a3', 569, '더블와퍼 후드자켓', 206400, 139000],
     ['a4', 571, '리스 자켓',         142400, 99000],
     ['a5', 572, '후리스피 자켓',     140800, 99000]
@@ -126,9 +126,9 @@ var JOS_CONFIG = {
 .jos-cal li.is-today .w,.jos-cal li.is-today .t{color:#FBF5EC}
 
 /* ── 5. LINE-UP */
-.jos-line-sec{padding:clamp(80px,9vw,150px) 0 clamp(70px,8vw,120px);position:relative;overflow:hidden}
-.jos-line-sec.is-kids{background:var(--bg)}
-.jos-line-sec.is-adult{background:var(--bg2);--tone:#D0CBC4}
+.jos-line-sec{padding:clamp(80px,9vw,150px) 0 clamp(70px,8vw,120px);position:relative;overflow:hidden;scroll-margin-top:var(--jos-head,0px)}
+.jos-line-sec.is-adult{background:var(--bg)}
+.jos-line-sec.is-kids{background:var(--bg2);--tone:#D0CBC4}
 .jos-ghost{position:absolute;left:3vw;top:clamp(10px,2vw,36px);font-weight:200;letter-spacing:-.06em;font-size:clamp(140px,19vw,340px);line-height:.8;color:var(--tone);pointer-events:none;white-space:nowrap}
 .jos-line-head{position:relative;padding:0 6vw;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .jos-line-head h2{font-weight:300;letter-spacing:-.03em;font-size:clamp(28px,2.4vw,40px);line-height:1.3;margin-top:12px}
@@ -273,9 +273,9 @@ var JOS_CONFIG = {
         <a class="jos-btn is-acc jos-only-pre" data-jos-href="kakao" target="_blank" rel="noopener">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7l-1 3.6c-.1.3.3.6.6.4l4.2-2.8c.5.1 1 .1 1.5.1 5.5 0 10-3.6 10-8S17.5 3 12 3z"/></svg>
           오픈 알림 받기</a>
-        <a class="jos-btn is-acc jos-only-open" href="#jos-kids">특가 상품 보러가기 ↓</a>
+        <a class="jos-btn is-acc jos-only-open" href="#jos-adult">특가 상품 보러가기 ↓</a>
         <a class="jos-btn is-acc jos-only-end" data-jos-href="saleList">SALE 전체 보기</a>
-        <a class="jos-btn jos-only-pre" href="#jos-kids">라인업 미리보기 ↓</a>
+        <a class="jos-btn jos-only-pre" href="#jos-adult">라인업 미리보기 ↓</a>
       </div>
     </div>
   </section>
@@ -320,23 +320,23 @@ var JOS_CONFIG = {
     <ol class="jos-cal" data-jos-cal></ol>
   </section>
 
-  <!-- 5. LINE-UP -->
-  <section class="jos-line-sec is-kids" id="jos-kids" aria-labelledby="jos-kids-title">
-    <div class="jos-ghost" aria-hidden="true">Kids</div>
-    <div class="jos-line-head">
-      <div><p class="cap">Line-up 01 &nbsp;·&nbsp; Kids Outer</p><h2 id="jos-kids-title">아이 아우터,<br>이월 특가</h2></div>
-      <p class="pct">40–50<i>%</i></p>
-    </div>
-    <div class="jos-grid" data-jos-grid="kids"></div>
-  </section>
-
+  <!-- 5. LINE-UP (어른 먼저: 2026-10-22 사용자 요청) -->
   <section class="jos-line-sec is-adult" id="jos-adult" aria-labelledby="jos-adult-title">
     <div class="jos-ghost" aria-hidden="true">Adult</div>
     <div class="jos-line-head">
-      <div><p class="cap">Line-up 02 &nbsp;·&nbsp; Adult Outer</p><h2 id="jos-adult-title">어른 아우터,<br>이월 특가</h2></div>
+      <div><p class="cap">Line-up 01 &nbsp;·&nbsp; Adult Outer</p><h2 id="jos-adult-title">어른 아우터,<br>이월 특가</h2></div>
       <p class="pct"><small>up to</small>38<i>%</i></p>
     </div>
     <div class="jos-grid" data-jos-grid="adult"></div>
+  </section>
+
+  <section class="jos-line-sec is-kids" id="jos-kids" aria-labelledby="jos-kids-title">
+    <div class="jos-ghost" aria-hidden="true">Kids</div>
+    <div class="jos-line-head">
+      <div><p class="cap">Line-up 02 &nbsp;·&nbsp; Kids Outer</p><h2 id="jos-kids-title">아이 아우터,<br>이월 특가</h2></div>
+      <p class="pct">40–50<i>%</i></p>
+    </div>
+    <div class="jos-grid" data-jos-grid="kids"></div>
   </section>
 
   <!-- 6. HOW TO -->
@@ -377,7 +377,7 @@ var JOS_CONFIG = {
     <span class="dd" data-jos-dday>D-4</span>
     <span class="tx"><span class="jos-only-pre">10.26 (월) 오전 10시 오픈<br>아우터 특가전</span><span class="jos-only-open">아우터 특가전 진행 중<br>11.01 (일) 마감</span></span>
     <a class="jos-btn is-acc jos-only-pre" data-jos-href="kakao" target="_blank" rel="noopener">알림 받기</a>
-    <a class="jos-btn is-acc jos-only-open" href="#jos-kids">상품 보기</a>
+    <a class="jos-btn is-acc jos-only-open" href="#jos-adult">상품 보기</a>
   </div>
 </div>
 
