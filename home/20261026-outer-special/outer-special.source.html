@@ -404,13 +404,22 @@ var JOS_CONFIG = {
       var head = (hs.position === 'fixed' || hs.position === 'sticky') && hr.top <= 1 ? Math.round(hr.bottom) : 0;
       root.style.setProperty('--jos-head', head + 'px');
     }
+    // 하단 메뉴는 스크롤하면 숨었다 나타나므로, 지금 화면에 보이는 만큼만 비켜 앉습니다.
     var b = document.querySelector('.bottom-nav'), foot = 0;
-    if (b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).position === 'fixed') foot = Math.round(b.getBoundingClientRect().height);
+    if (b && getComputedStyle(b).display !== 'none' && getComputedStyle(b).position === 'fixed') foot = Math.max(0, Math.round(window.innerHeight - b.getBoundingClientRect().top));
     root.style.setProperty('--jos-foot', foot + 'px');
   }
+  var fitFrame = 0;
+  function fitSoon() { if (!fitFrame) fitFrame = requestAnimationFrame(function () { fitFrame = 0; fitChrome(); }); }
   fitChrome();
-  window.addEventListener('load', fitChrome);
-  window.addEventListener('resize', fitChrome);
+  window.addEventListener('load', function () {
+    fitChrome();
+    var bn = document.querySelector('.bottom-nav');
+    if (bn) bn.addEventListener('transitionend', fitChrome); // 숨김/나타남 애니메이션이 끝날 때마다
+  });
+  window.addEventListener('resize', fitSoon);
+  window.addEventListener('scroll', fitSoon, { passive: true });
+  setTimeout(fitChrome, 400); // 하단 메뉴 숨김 애니메이션이 끝난 뒤 한 번 더
   $$('[data-jos-href]').forEach(function (el) { el.href = C[el.getAttribute('data-jos-href')]; });
 
   // 미리보기 강제 모드: ?jos=pre|open|end
