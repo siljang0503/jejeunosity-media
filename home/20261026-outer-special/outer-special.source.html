@@ -5,12 +5,12 @@
 
 <script>
 var JOS_CONFIG = {
-  // 이미지 폴더 주소(끝에 / 포함). GitHub siljang0503/jejeunosity-media 커밋 da0fa46을 jsDelivr로 고정해서 씁니다.
+  // 이미지 폴더 주소(끝에 / 포함). GitHub siljang0503/jejeunosity-media의 한 커밋(주소 안 @ 뒤 번호)을 jsDelivr로 고정해서 씁니다.
   // 이미지를 바꾸면 저장소에 다시 올리고 새 커밋 번호로 이 줄만 바꿉니다.
   asset: 'https://cdn.jsdelivr.net/gh/siljang0503/jejeunosity-media@05e806c12f8bd9cc4ac3b11fb6d440caac8c0263/home/20261026-outer-special/',
   open: '2026-10-26T10:00:00+09:00',   // 오픈 시각(한국시간)
   end:  '2026-11-01T23:59:59+09:00',   // 종료 시각(한국시간)
-  lockPrice: true,                      // 오픈 전 최종가를 서리 효과로 가림
+  lockPrice: false,                     // true면 오픈 전 최종가를 서리 효과로 가림. 2026-10-22 사용자 요청으로 미리 공개(false)
   kakao: 'https://pf.kakao.com/_kxlLcG',
   saleList: '/product/list.html?cate_no=50',
   detail: '/product/detail.html?product_no=',
@@ -147,6 +147,8 @@ var JOS_CONFIG = {
 .jos-card .pr .off{font-weight:800;letter-spacing:-.04em;color:var(--acc);font-size:20px;line-height:1}
 .jos-card .pr s{color:var(--mute);opacity:.8}
 .jos-card .pr .fin{font-weight:800;font-size:16px}
+/* 오픈 전 최종가를 미리 보여줄 때(lockPrice:false) 적용 시점을 옆에 작게 붙입니다. 상세페이지는 오픈 전까지 정상가입니다. */
+.jos-card .pr .when{font-size:11px;font-weight:600;letter-spacing:-.01em;color:var(--mute)}
 .jos-card .go{margin-top:14px;height:42px;font-size:13px;padding:0 14px}
 .jos-lock{position:relative;display:inline-block;padding:2px 10px;overflow:hidden;background:#CFC6BA;color:transparent!important;user-select:none}
 .jos-lock::before{content:'';position:absolute;inset:0;background:var(--frost) center/180px;mix-blend-mode:screen;opacity:.85}
@@ -445,7 +447,7 @@ var JOS_CONFIG = {
         '<p class="no">No.' + ('0' + (i + 1)).slice(-2) + '</p>' +
         '<p class="nm">' + it[2] + '</p>' +
         '<p class="pr"><span class="off">' + off(it[3], it[4]) + '%</span><s>' + won(it[3]) + '</s>' +
-        '<span class="fin" data-jos-fin>' + won(it[4]) + '</span></p>' +
+        '<span class="fin" data-jos-fin>' + won(it[4]) + '</span><small class="when jos-only-pre">10.26 10시부터</small></p>' +
         '<span class="jos-btn go"><span class="jos-only-pre">미리 보고 찜하기</span><span class="jos-only-open">구매하러 가기</span><span class="jos-only-end">상품 보기</span></span>' +
         '</a>';
     }).join('');
