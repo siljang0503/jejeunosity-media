@@ -1,0 +1,494 @@
+<!--@layout(/layout/basic/layout.html)-->
+<!-- EDIT S31 OUTER SPECIAL 20261026: 아우터 특가전 예약(오픈 전) → 오픈 → 종료 화면을 시간에 따라 자동 전환합니다.
+     설정은 아래 JOS_CONFIG 한 곳에서만 바꿉니다. 미리보기: 주소 뒤에 ?jos=pre / ?jos=open / ?jos=end -->
+<link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" rel="stylesheet">
+
+<script>
+var JOS_CONFIG = {
+  // 이미지 폴더 주소(끝에 / 포함). GitHub siljang0503/jejeunosity-media 커밋 da0fa46을 jsDelivr로 고정해서 씁니다.
+  // 이미지를 바꾸면 저장소에 다시 올리고 새 커밋 번호로 이 줄만 바꿉니다.
+  asset: 'https://cdn.jsdelivr.net/gh/siljang0503/jejeunosity-media@da0fa46deb76af36b2304df5df318dabc1470232/home/20261026-outer-special/',
+  open: '2026-10-26T10:00:00+09:00',   // 오픈 시각(한국시간)
+  end:  '2026-11-01T23:59:59+09:00',   // 종료 시각(한국시간)
+  lockPrice: true,                      // 오픈 전 최종가를 서리 효과로 가림
+  kakao: 'https://pf.kakao.com/_kxlLcG',
+  saleList: '/product/list.html?cate_no=50',
+  detail: '/product/detail.html?product_no=',
+  kids: [
+    ['k1', 528, '아이패딩 pro',   126400, 63200],
+    ['k2', 265, '플러피 자켓',     86400, 51840],
+    ['k3', 567, '우노스키 자켓',   68800, 41280],
+    ['k4', 566, '얼스 경량패딩',   70400, 42240],
+    ['k5', 560, '월드 베스트',     59200, 35520]
+  ],
+  adult: [
+    ['a1', 573, '스키니트 자켓',     147200, 89900],
+    ['a2', 570, '레더클락 자켓',     211200, 139000],
+    ['a3', 569, '더블와퍼 후드자켓', 206400, 139000],
+    ['a4', 571, '리스 자켓',         142400, 99000],
+    ['a5', 572, '후리스피 자켓',     140800, 99000]
+  ]
+};
+</script>
+
+<style>
+.jos{--bg:#E9E1D6;--bg2:#DEDAD4;--paper:#F4EEE6;--tone:#DDD2C4;--ink:#2B2420;--mute:#7A6F66;--acc:#B4462E;--acc-d:#983925;
+  background:var(--bg);color:var(--ink);font-family:Pretendard,-apple-system,'Apple SD Gothic Neo',sans-serif;
+  -webkit-font-smoothing:antialiased;overflow:clip;word-break:keep-all;line-height:1.5}
+.jos *{box-sizing:border-box;margin:0;padding:0}
+.jos img{display:block;max-width:100%}
+.jos a{color:inherit;text-decoration:none}
+/* 서체는 v7 배너(Prepare for Winter)와 같게: 영문·숫자 디스플레이는 Pretendard 200, 할인율은 800 */
+.jos .bod{font-weight:200;letter-spacing:-.04em}
+.jos .gow{font-weight:600;letter-spacing:-.02em}
+.jos .cap{text-transform:uppercase;letter-spacing:.28em;font-weight:600;font-size:11px}
+.jos [hidden]{display:none!important}
+.jos:not([data-mode=pre]) .jos-only-pre,.jos:not([data-mode=open]) .jos-only-open,.jos:not([data-mode=end]) .jos-only-end{display:none!important}
+
+/* ── buttons */
+.jos-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:52px;padding:0 26px;border:1px solid var(--ink);
+  font-size:14px;font-weight:700;letter-spacing:-.01em;background:transparent;color:var(--ink);cursor:pointer;transition:background .2s,color .2s;font-family:inherit}
+.jos-btn:hover{background:var(--ink);color:var(--paper)}
+.jos-btn.is-acc{background:var(--acc);border-color:var(--acc);color:#fff}
+.jos-btn.is-acc:hover{background:var(--acc-d);border-color:var(--acc-d)}
+.jos-btn svg{width:16px;height:16px;flex:none}
+
+/* ── 1. HERO */
+.jos-hero{position:relative;display:grid;grid-template-rows:1fr auto;background:var(--bg)}
+.jos-hero picture{grid-area:1/1/3/2;display:block}
+.jos-hero picture img{width:100%;height:100%;min-height:700px;max-height:980px;object-fit:cover;object-position:70% 50%}
+.jos-hero-copy,.jos-hero-cta{grid-column:1;margin-left:6vw;width:min(42vw,600px);z-index:3;position:relative}
+.jos-hero-copy{grid-row:1;align-self:start;margin-top:clamp(56px,7vw,120px);margin-bottom:28px}
+.jos-hero-cta{grid-row:2;margin-bottom:clamp(44px,5vw,88px)}
+.jos-hero h1{font-weight:200;font-size:clamp(58px,6.4vw,118px);line-height:1;letter-spacing:-.045em;margin-top:clamp(20px,2.2vw,40px)}
+.jos-hero .jos-sub{font-size:clamp(17px,1.4vw,24px);font-weight:600;letter-spacing:-.02em;margin:clamp(14px,1.4vw,24px) 0 6px}
+.jos-hero-cta .jos-line{display:none}
+.jos-hero .jos-line{font-size:15px;color:var(--mute);margin-top:6px}
+.jos-hero .jos-line b{color:var(--acc);font-weight:700}
+.jos-stamp{position:absolute;z-index:4;left:43vw;top:9%;width:clamp(120px,11vw,200px);transform:rotate(-14deg);mix-blend-mode:multiply;opacity:.92;
+  animation:jos-stamp .55s cubic-bezier(.2,1.6,.4,1) .5s both}
+@keyframes jos-stamp{0%{transform:rotate(-24deg) scale(1.9);opacity:0}100%{transform:rotate(-14deg) scale(1);opacity:.92}}
+.jos[data-mode=end] .jos-stamp{filter:grayscale(1);opacity:.4;animation:none}
+
+.jos-clock-label{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.02em}
+.jos-clock-label i{width:8px;height:8px;border-radius:50%;background:var(--acc);animation:jos-blink 1.2s infinite}
+@keyframes jos-blink{50%{opacity:.25}}
+.jos-clock{display:flex;align-items:flex-end;gap:clamp(10px,1.2vw,22px);margin:10px 0 24px}
+.jos-clock div{text-align:center;min-width:1.25em}
+.jos-clock b{display:block;font-weight:200;font-size:clamp(46px,4.6vw,80px);line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.jos-clock span{display:block;font-size:10px;letter-spacing:.24em;color:var(--mute);margin-top:8px}
+.jos-clock em{font-weight:200;font-style:normal;font-size:clamp(30px,3vw,52px);line-height:1.2;color:var(--acc);align-self:center;margin-bottom:22px}
+.jos-endmsg{font-weight:600;font-size:22px;margin:12px 0 22px}
+.jos-actions{display:flex;flex-wrap:wrap;gap:10px}
+
+/* ── 2. TAPE */
+.jos-tape{position:relative;height:150px;background:var(--bg);overflow:hidden}
+.jos-band{position:absolute;left:-5%;width:110%;white-space:nowrap;overflow:hidden;padding:13px 0;font-weight:700;font-size:15px;letter-spacing:.12em}
+.jos-band.b1{top:34px;background:var(--acc);color:#FBF5EC;transform:rotate(-2.4deg);z-index:2;box-shadow:0 8px 20px rgba(80,40,20,.12)}
+.jos-band.b2{top:62px;background:var(--paper);color:var(--ink);transform:rotate(2deg);border-block:1px solid rgba(43,36,32,.15)}
+.jos-band .trk{display:inline-block;animation:jos-run 38s linear infinite}
+.jos-band.b2 .trk{animation-direction:reverse;animation-duration:46s}
+.jos-band span{margin:0 18px}
+@keyframes jos-run{to{transform:translateX(-50%)}}
+
+/* ── 3. TICKET */
+.jos-sec{padding:clamp(72px,9vw,140px) 6vw;position:relative}
+.jos-head{text-align:center;margin-bottom:clamp(36px,4vw,60px)}
+.jos-head .cap{color:var(--acc)}
+.jos-head h2{font-weight:300;letter-spacing:-.03em;font-size:clamp(26px,2.4vw,40px);line-height:1.4;margin-top:14px}
+.jos-head p{color:var(--mute);font-size:15px;margin-top:10px}
+.jos-ticket{position:relative;max-width:1100px;margin:0 auto;container-type:inline-size;filter:drop-shadow(0 18px 30px rgba(80,50,30,.14));transform:rotate(-1.2deg)}
+.jos-ticket>img{width:100%}
+.jos-tk-main{position:absolute;left:7%;top:14%;bottom:14%;width:64%;display:flex;flex-direction:column;justify-content:center}
+.jos-tk-main .cap{font-size:1.15cqw;color:var(--acc)}
+.jos-tk-main .gow{font-size:2.1cqw;font-weight:700;margin-top:.9cqw}
+.jos-tk-date{font-weight:200;font-size:5.4cqw;line-height:1.05;letter-spacing:-.045em;margin-top:.6cqw;white-space:nowrap}
+.jos-tk-date i{font-size:.42em;font-style:normal;font-weight:400;letter-spacing:0;color:var(--mute)}
+.jos-tk-meta{display:flex;gap:2.2cqw;font-size:1.45cqw;margin-top:1.4cqw;color:var(--mute);white-space:nowrap}
+.jos-tk-meta b{color:var(--acc)}
+.jos-tk-stub{position:absolute;right:4%;top:14%;bottom:14%;width:16%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.jos-tk-stub .cap{font-size:1cqw;letter-spacing:.2em;color:var(--mute)}
+.jos-tk-stub b{font-weight:800;letter-spacing:-.05em;font-size:6.2cqw;line-height:1;color:var(--acc);margin:.8cqw 0}
+.jos-tk-stub small{font-size:1.15cqw;color:var(--mute)}
+.jos-tk-under{display:none}
+.jos-ticket-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:clamp(40px,4vw,60px)}
+
+/* ── 4. CALENDAR */
+.jos-cal{display:grid;grid-template-columns:repeat(7,1fr);max-width:1100px;margin:clamp(56px,6vw,90px) auto 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+.jos-cal li{list-style:none;position:relative;padding:18px 6px 20px;text-align:center;border-left:1px solid rgba(43,36,32,.18)}
+.jos-cal li:first-child{border-left:0}
+.jos-cal .d{font-weight:200;letter-spacing:-.04em;font-size:clamp(26px,2.6vw,44px);line-height:1}
+.jos-cal .w{font-size:10px;letter-spacing:.2em;color:var(--mute);margin-top:6px}
+.jos-cal .t{font-size:11px;font-weight:700;color:var(--acc);margin-top:8px;min-height:1.5em}
+.jos-cal li.is-past{opacity:.35}
+.jos-cal li.is-today{background:var(--acc);color:#FBF5EC}
+.jos-cal li.is-today .w,.jos-cal li.is-today .t{color:#FBF5EC}
+
+/* ── 5. LINE-UP */
+.jos-line-sec{padding:clamp(80px,9vw,150px) 0 clamp(70px,8vw,120px);position:relative;overflow:hidden}
+.jos-line-sec.is-kids{background:var(--bg)}
+.jos-line-sec.is-adult{background:var(--bg2);--tone:#D0CBC4}
+.jos-ghost{position:absolute;left:3vw;top:clamp(10px,2vw,36px);font-weight:200;letter-spacing:-.06em;font-size:clamp(140px,19vw,340px);line-height:.8;color:var(--tone);pointer-events:none;white-space:nowrap}
+.jos-line-head{position:relative;padding:0 6vw;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.jos-line-head h2{font-weight:300;letter-spacing:-.03em;font-size:clamp(28px,2.4vw,40px);line-height:1.3;margin-top:12px}
+.jos-line-head .pct{font-weight:800;color:var(--acc);font-size:clamp(64px,7vw,120px);line-height:.9;letter-spacing:-.05em;white-space:nowrap}
+.jos-line-head .pct small{font-size:.22em;font-weight:700;letter-spacing:0;margin-right:.4em;color:var(--ink);vertical-align:.4em}
+.jos-line-head .pct i{font-style:normal}
+.jos-grid{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:clamp(12px,1.4vw,24px);padding:clamp(36px,4vw,60px) 6vw 0}
+.jos-card{display:flex;flex-direction:column}
+.jos-card .ph{position:relative;aspect-ratio:3/4;overflow:hidden;background:var(--tone)}
+.jos-card .ph img{width:100%;height:100%;object-fit:cover;object-position:50% 30%;transition:transform .7s cubic-bezier(.2,.8,.2,1)}
+.jos-card:hover .ph img{transform:scale(1.04)}
+.jos-card .ph .tag{position:absolute;left:10px;top:10px;background:var(--acc);color:#FBF5EC;font-weight:800;letter-spacing:-.03em;font-size:14px;line-height:1;padding:7px 9px 6px}
+.jos-card .no{font-weight:500;letter-spacing:.06em;font-size:12px;color:var(--mute);border-top:1px solid var(--ink);padding-top:12px;margin-top:6px}
+.jos-card .nm{font-weight:600;letter-spacing:-.02em;font-size:clamp(16px,1.15vw,19px);margin-top:2px}
+.jos-card .pr{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin-top:8px;font-size:14px}
+.jos-card .pr .off{font-weight:800;letter-spacing:-.04em;color:var(--acc);font-size:20px;line-height:1}
+.jos-card .pr s{color:var(--mute);opacity:.8}
+.jos-card .pr .fin{font-weight:800;font-size:16px}
+.jos-card .go{margin-top:14px;height:42px;font-size:13px;padding:0 14px}
+.jos-lock{position:relative;display:inline-block;padding:2px 10px;overflow:hidden;background:#CFC6BA;color:transparent!important;user-select:none}
+.jos-lock::before{content:'';position:absolute;inset:0;background:var(--frost) center/180px;mix-blend-mode:screen;opacity:.85}
+.jos-lock::after{content:'10.26 공개';position:absolute;inset:0;display:grid;place-items:center;color:var(--ink);font-size:11px;font-weight:800;letter-spacing:.04em;white-space:nowrap}
+
+/* ── 6. HOW TO */
+.jos-how{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(32px,6vw,110px);align-items:center;max-width:1300px;margin:0 auto}
+.jos-how figure{position:relative}
+.jos-how figure img{width:100%;aspect-ratio:4/5;object-fit:cover}
+.jos-how figure figcaption{position:absolute;left:49%;top:76%;width:22%;transform:translate(-50%,-50%) rotate(-40deg);text-align:center;font-weight:300;letter-spacing:-.03em;color:#3A2A20;line-height:1.1;mix-blend-mode:multiply;opacity:.88}
+.jos-how figure figcaption b{display:block;font-weight:400;font-size:clamp(22px,2.3vw,40px)}
+.jos-how figure figcaption small{display:block;font-size:clamp(9px,.8vw,13px);letter-spacing:.14em;margin-top:6px}
+.jos-steps{list-style:none;counter-reset:s;margin-top:28px;border-top:1px solid var(--ink)}
+.jos-steps li{display:grid;grid-template-columns:64px 1fr;gap:6px 18px;padding:26px 0;border-bottom:1px solid rgba(43,36,32,.2)}
+.jos-steps li::before{counter-increment:s;content:'0' counter(s);grid-row:span 2;font-weight:200;letter-spacing:-.04em;font-size:40px;line-height:1;color:var(--acc)}
+.jos-steps b{font-weight:600;letter-spacing:-.02em;font-size:20px}
+.jos-steps p{color:var(--mute);font-size:14px}
+.jos-steps a{text-decoration:underline;text-underline-offset:3px}
+
+/* ── 7. NOTICE */
+.jos-notice{background:var(--paper);padding:clamp(56px,6vw,90px) 6vw}
+.jos-notice>div{max-width:900px;margin:0 auto}
+.jos-notice ul{list-style:none;margin-top:18px}
+.jos-notice li{position:relative;padding-left:14px;font-size:13px;color:var(--mute);line-height:1.9}
+.jos-notice li::before{content:'·';position:absolute;left:0}
+
+/* ── mobile dock */
+.jos-dock{position:sticky;bottom:0;z-index:20;display:none;align-items:center;gap:12px;padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  background:rgba(43,36,32,.94);color:#FBF5EC;backdrop-filter:blur(8px)}
+.jos-dock .dd{font-weight:800;letter-spacing:-.04em;font-size:24px;color:#F0A58F;line-height:1}
+.jos-dock .tx{flex:1;font-size:12px;line-height:1.35}
+.jos-dock .jos-btn{height:40px;padding:0 16px;font-size:13px}
+
+@media (prefers-reduced-motion:reduce){.jos-band .trk,.jos-stamp,.jos-clock-label i{animation:none}}
+
+/* ───────── tablet / mobile */
+@media (max-width:1023px){
+  .jos-grid{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:clamp(200px,38vw,300px);overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 6vw;padding-bottom:12px;scrollbar-width:none}
+  .jos-grid::-webkit-scrollbar{display:none}
+  .jos-card{scroll-snap-align:start}
+}
+@media (max-width:767px){
+  .jos-hero{grid-template-rows:auto auto}
+  .jos-hero picture{grid-area:1/1/2/2}
+  .jos-hero picture img{min-height:0;max-height:none;aspect-ratio:1080/1935;object-position:50% 100%}
+  .jos-hero-copy{margin:30px 16px 0;width:auto;text-align:center;justify-self:stretch}
+  .jos-hero-copy .cap{font-size:9px;letter-spacing:.2em}
+  .jos-hero h1{font-size:52px;margin-top:14px}
+  .jos-hero .jos-sub{font-size:15px;margin:12px 0 0}
+  .jos-hero-copy .jos-line{display:none}
+  .jos-hero-cta .jos-line{display:block;font-size:13px;margin:0 0 18px}
+  .jos-hero-cta{grid-area:2/1;margin:0;width:auto;padding:26px 20px 34px;background:var(--paper);text-align:center}
+  .jos-clock-label{justify-content:center}
+  .jos-clock{justify-content:center;margin:8px 0 20px;gap:8px}
+  .jos-clock b{font-size:44px}
+  .jos-clock em{font-size:28px;margin-bottom:20px}
+  .jos-actions{flex-direction:column}
+  .jos-actions .jos-btn{width:100%}
+  .jos-stamp{left:auto;right:6%;top:41%;width:24vw}
+  .jos-tape{height:118px}
+  .jos-band{font-size:12px;padding:10px 0}
+  .jos-band.b1{top:26px}.jos-band.b2{top:50px}
+  .jos-sec{padding:70px 16px}
+  .jos-ticket{transform:rotate(-1.5deg);margin:0 -4px}
+  .jos-tk-main{left:8%;width:62%}
+  .jos-tk-main .cap,.jos-tk-main .gow,.jos-tk-meta{display:none}
+  .jos-tk-date{font-size:7.4cqw}
+  .jos-tk-stub .cap{display:none}
+  .jos-tk-stub b{font-size:8.4cqw}
+  .jos-tk-stub small{font-size:2.4cqw}
+  .jos-tk-under{display:block;max-width:420px;margin:30px auto 0;text-align:center}
+  .jos-tk-under .gow{font-size:18px;font-weight:700}
+  .jos-tk-under p{font-size:13px;color:var(--mute);margin-top:6px}
+  .jos-tk-under p b{color:var(--acc)}
+  .jos-ticket-actions{flex-direction:column;margin-top:28px}
+  .jos-ticket-actions .jos-btn{width:100%}
+  .jos-cal{margin-top:46px}
+  .jos-cal li{padding:12px 2px 14px}
+  .jos-cal .d{font-size:22px}
+  .jos-cal .w{font-size:9px;letter-spacing:.08em}
+  .jos-cal .t{font-size:9px;letter-spacing:-.02em}
+  .jos-line-head{padding:0 16px}
+  .jos-grid{padding:30px 16px 12px;grid-auto-columns:62vw;scroll-padding:0 16px}
+  .jos-ghost{font-size:120px;right:-4vw}
+  .jos-how{grid-template-columns:1fr}
+  .jos-how figure figcaption small{letter-spacing:.04em}
+  .jos-steps b{font-size:18px}
+  .jos-steps li{grid-template-columns:48px 1fr}
+  .jos-steps li::before{font-size:32px}
+  .jos-notice{padding:52px 16px}
+  .jos-dock{display:flex}
+  .jos[data-mode=end] .jos-dock{display:none}
+}
+</style>
+
+<div id="jos" class="jos" data-mode="pre">
+
+  <!-- 1. HERO -->
+  <section class="jos-hero" aria-label="아우터 특가전">
+    <picture>
+      <source media="(max-width:767px)" data-jos-hero="mo">
+      <img data-jos-hero="pc" alt="아우터가 걸린 행거 — 아우터 특가전" fetchpriority="high">
+    </picture>
+    <img class="jos-stamp" data-jos="stamp.png" alt="10.26 MON 10AM OPEN 스탬프">
+
+    <div class="jos-hero-copy">
+      <p class="cap">JEJEUNOSITY &nbsp;·&nbsp; Outer Sale</p>
+      <h1>Prepare<br>for Winter</h1>
+      <p class="jos-sub">겨울이 오기 전에, 미리 따뜻하게.</p>
+      <p class="jos-line">아우터 특가전 · KIDS <b>40–50%</b> · ADULT <b>최대 38%</b></p>
+    </div>
+
+    <div class="jos-hero-cta">
+      <p class="jos-line">아우터 특가전 · KIDS <b>40–50%</b> · ADULT <b>최대 38%</b></p>
+      <p class="jos-clock-label"><i></i><span class="jos-only-pre">10.26 (월) 오전 10시 오픈까지</span><span class="jos-only-open">지금 진행 중 · 11.01 (일) 마감까지</span><span class="jos-only-end">특가전 종료</span></p>
+      <div class="jos-clock" data-jos-clock aria-live="off">
+        <div><b data-u="d">00</b><span>DAYS</span></div><em>:</em>
+        <div><b data-u="h">00</b><span>HRS</span></div><em>:</em>
+        <div><b data-u="m">00</b><span>MIN</span></div><em>:</em>
+        <div><b data-u="s">00</b><span>SEC</span></div>
+      </div>
+      <p class="jos-endmsg jos-only-end">아우터 특가전이 종료되었습니다. 찾아주셔서 감사합니다.</p>
+      <div class="jos-actions">
+        <a class="jos-btn is-acc jos-only-pre" data-jos-href="kakao" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.8 1.9 5.3 4.7 6.7l-1 3.6c-.1.3.3.6.6.4l4.2-2.8c.5.1 1 .1 1.5.1 5.5 0 10-3.6 10-8S17.5 3 12 3z"/></svg>
+          오픈 알림 받기</a>
+        <a class="jos-btn is-acc jos-only-open" href="#jos-kids">특가 상품 보러가기 ↓</a>
+        <a class="jos-btn is-acc jos-only-end" data-jos-href="saleList">SALE 전체 보기</a>
+        <a class="jos-btn jos-only-pre" href="#jos-kids">라인업 미리보기 ↓</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. TAPE -->
+  <div class="jos-tape" aria-hidden="true">
+    <div class="jos-band b1"><div class="trk" data-jos-tape="a"></div></div>
+    <div class="jos-band b2"><div class="trk" data-jos-tape="b"></div></div>
+  </div>
+
+  <!-- 3. TICKET -->
+  <section class="jos-sec jos-only-pre" aria-labelledby="jos-ticket-title">
+    <div class="jos-head">
+      <p class="cap">Invitation</p>
+      <h2 id="jos-ticket-title">먼저 도착한<br>아우터 특가전 초대권</h2>
+      <p>찜해두고 알림 받아두면, 오픈 순간 바로 담을 수 있어요.</p>
+    </div>
+    <div class="jos-ticket">
+      <img data-jos="ticket.png" alt="" loading="lazy">
+      <div class="jos-tk-main">
+        <p class="cap">Admit one &nbsp;·&nbsp; Outer Special</p>
+        <p class="gow">제제우노시티 아우터 특가전</p>
+        <p class="jos-tk-date">10.26 <i>Mon</i> — 11.01 <i>Sun</i></p>
+        <p class="jos-tk-meta"><span>오전 10시 오픈</span><span>KIDS <b>40–50%</b></span><span>ADULT <b>~38%</b></span><span>단 7일</span></p>
+      </div>
+      <div class="jos-tk-stub">
+        <p class="cap">No. 1026</p>
+        <b data-jos-dday>D-4</b>
+        <small>10AM OPEN</small>
+      </div>
+    </div>
+    <div class="jos-tk-under">
+      <p class="gow">10.26 (월) 오전 10시 — 11.01 (일)</p>
+      <p>KIDS <b>40–50%</b> · ADULT <b>최대 38%</b> · 단 7일 · 한정 수량</p>
+    </div>
+    <div class="jos-ticket-actions">
+      <a class="jos-btn is-acc" data-jos-href="kakao" target="_blank" rel="noopener">카카오 채널 추가하고 알림 받기</a>
+      <button type="button" class="jos-btn" data-jos-ics>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>
+        내 캘린더에 저장</button>
+    </div>
+    <ol class="jos-cal" data-jos-cal></ol>
+  </section>
+
+  <!-- 5. LINE-UP -->
+  <section class="jos-line-sec is-kids" id="jos-kids" aria-labelledby="jos-kids-title">
+    <div class="jos-ghost" aria-hidden="true">Kids</div>
+    <div class="jos-line-head">
+      <div><p class="cap">Line-up 01 &nbsp;·&nbsp; Kids Outer</p><h2 id="jos-kids-title">아이 아우터,<br>이월 특가</h2></div>
+      <p class="pct">40–50<i>%</i></p>
+    </div>
+    <div class="jos-grid" data-jos-grid="kids"></div>
+  </section>
+
+  <section class="jos-line-sec is-adult" id="jos-adult" aria-labelledby="jos-adult-title">
+    <div class="jos-ghost" aria-hidden="true">Adult</div>
+    <div class="jos-line-head">
+      <div><p class="cap">Line-up 02 &nbsp;·&nbsp; Adult Outer</p><h2 id="jos-adult-title">어른 아우터,<br>이월 특가</h2></div>
+      <p class="pct"><small>up to</small>38<i>%</i></p>
+    </div>
+    <div class="jos-grid" data-jos-grid="adult"></div>
+  </section>
+
+  <!-- 6. HOW TO -->
+  <section class="jos-sec jos-only-pre" aria-labelledby="jos-how-title">
+    <div class="jos-how">
+      <figure>
+        <img data-jos="tag.jpg" alt="안쪽 털이 풍성한 월드 베스트와 크라프트 택" loading="lazy">
+        <figcaption><b data-jos-dday>D-4</b><small>10.26 OPEN</small></figcaption>
+      </figure>
+      <div>
+        <p class="cap" style="color:var(--acc)">How to reserve</p>
+        <h2 class="gow" id="jos-how-title" style="font-weight:400;font-size:clamp(26px,2.4vw,40px);line-height:1.4;margin-top:14px">놓치지 않는<br>세 가지 준비</h2>
+        <ol class="jos-steps">
+          <li><b>카카오 채널 추가</b><p>오픈 당일 알림을 보내드려요. <a data-jos-href="kakao" target="_blank" rel="noopener">채널 추가하기</a></p></li>
+          <li><b>관심상품 미리 담기</b><p>라인업에서 상품을 눌러 상세페이지의 ♡ 관심상품에 담아두세요. 사이즈도 미리 확인해 두면 좋아요.</p></li>
+          <li><b>10.26 (월) 오전 10시</b><p>오전 10시가 되면 특가가 상품에 자동 적용됩니다. 관심상품에서 바로 장바구니로 담아 결제하세요. 한정 수량이라 품절 시 조기 종료돼요.</p></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. NOTICE -->
+  <section class="jos-notice" aria-labelledby="jos-notice-title">
+    <div>
+      <p class="cap" id="jos-notice-title">Notice</p>
+      <ul>
+        <li>행사 기간: 2026.10.26 (월) 오전 10:00 ~ 11.01 (일)</li>
+        <li>이월 상품 특가로 한정 수량 판매되며, 품절 시 조기 종료됩니다.</li>
+        <li>특가는 오픈 시각에 상품 가격에 적용됩니다. 오픈 전에는 정상가로 표시됩니다.</li>
+        <li>사이즈·컬러별 재고는 각 상품 상세페이지에서 확인해 주세요.</li>
+        <li>모델 이미지는 실제 상품을 바탕으로 AI로 생성한 연출 컷입니다. 정확한 색상·디테일은 상세페이지 사진을 확인해 주세요.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- mobile dock -->
+  <div class="jos-dock">
+    <span class="dd" data-jos-dday>D-4</span>
+    <span class="tx"><span class="jos-only-pre">10.26 (월) 오전 10시 오픈<br>아우터 특가전</span><span class="jos-only-open">아우터 특가전 진행 중<br>11.01 (일) 마감</span></span>
+    <a class="jos-btn is-acc jos-only-pre" data-jos-href="kakao" target="_blank" rel="noopener">알림 받기</a>
+    <a class="jos-btn is-acc jos-only-open" href="#jos-kids">상품 보기</a>
+  </div>
+</div>
+
+<script>
+(function () {
+  var C = window.JOS_CONFIG, root = document.getElementById('jos');
+  if (!root) return;
+  var OPEN = Date.parse(C.open), END = Date.parse(C.end);
+  var won = function (n) { return n.toLocaleString('ko-KR'); };
+  var off = function (o, p) { return Math.floor((1 - p / o) * 100); };
+  var $$ = function (s) { return Array.prototype.slice.call(root.querySelectorAll(s)); };
+
+  // 이미지 경로
+  $$('[data-jos]').forEach(function (el) { el.src = C.asset + el.getAttribute('data-jos'); });
+  $$('[data-jos-srcset]').forEach(function (el) { el.srcset = C.asset + el.getAttribute('data-jos-srcset'); });
+  root.style.setProperty('--frost', 'url("' + C.asset + 'frost.jpg")');
+  $$('[data-jos-href]').forEach(function (el) { el.href = C[el.getAttribute('data-jos-href')]; });
+
+  // 미리보기 강제 모드: ?jos=pre|open|end
+  var force = (location.search.match(/[?&]jos=(pre|open|end)/) || [])[1];
+  function mode(now) { return force || (now < OPEN ? 'pre' : now <= END ? 'open' : 'end'); }
+
+  // 한국시간 날짜(YYYY-MM-DD)
+  function kstDay(t) { return new Date(t + 9 * 3600e3).toISOString().slice(0, 10); }
+  function dday(now) {
+    var a = Date.parse(kstDay(now)), b = Date.parse(kstDay(OPEN));
+    var n = Math.round((b - a) / 864e5);
+    return n > 0 ? 'D-' + n : 'D-DAY';
+  }
+
+  // 상품 카드
+  function cards(key) {
+    var grid = root.querySelector('[data-jos-grid="' + key + '"]');
+    grid.innerHTML = C[key].map(function (it, i) {
+      var url = C.detail + it[1];
+      return '<a class="jos-card" href="' + url + '">' +
+        '<div class="ph"><img src="' + C.asset + 'ai/' + it[0] + '.jpg" alt="' + it[2] + ' 착용 연출 컷" loading="lazy">' +
+        '<span class="tag">-' + off(it[3], it[4]) + '%</span></div>' +
+        '<p class="no">No.' + ('0' + (i + 1)).slice(-2) + '</p>' +
+        '<p class="nm">' + it[2] + '</p>' +
+        '<p class="pr"><span class="off">' + off(it[3], it[4]) + '%</span><s>' + won(it[3]) + '</s>' +
+        '<span class="fin" data-jos-fin>' + won(it[4]) + '</span></p>' +
+        '<span class="jos-btn go"><span class="jos-only-pre">미리 보고 찜하기</span><span class="jos-only-open">구매하러 가기</span><span class="jos-only-end">상품 보기</span></span>' +
+        '</a>';
+    }).join('');
+  }
+  cards('kids'); cards('adult');
+
+  // 테이프 문구
+  var TAPE = {
+    pre:  ['COMING SOON', '10.26 MON 10AM OPEN', '아우터 특가전', 'KIDS 40–50%', 'ADULT UP TO 38%', '단 7일'],
+    open: ['NOW OPEN', '아우터 특가전 진행 중', 'KIDS 40–50%', 'ADULT UP TO 38%', '11.01 SUN 마감', '품절 시 조기 종료'],
+    end:  ['THANK YOU', '아우터 특가전 종료', 'SEE YOU NEXT SEASON']
+  };
+  function tape(m) {
+    var line = TAPE[m].map(function (t) { return '<span>' + t + '</span><span>✳︎</span>'; }).join('');
+    var row = new Array(6).join(line);
+    $$('[data-jos-tape]').forEach(function (el) { el.innerHTML = row + row; });
+  }
+
+  // 7일 달력
+  function cal(now) {
+    var box = root.querySelector('[data-jos-cal]');
+    if (!box) return;
+    var W = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], today = kstDay(now), html = '';
+    for (var i = 0; i < 7; i++) {
+      var t = Date.parse(kstDay(OPEN)) + i * 864e5, d = new Date(t), key = d.toISOString().slice(0, 10);
+      var cls = key < today ? 'is-past' : key === today ? 'is-today' : '';
+      var tag = i === 0 ? 'OPEN 10AM' : i === 6 ? 'LAST DAY' : '';
+      html += '<li class="' + cls + '"><p class="d">' + ('0' + d.getUTCDate()).slice(-2) + '</p><p class="w">' + W[d.getUTCDay()] + '</p><p class="t">' + tag + '</p></li>';
+    }
+    box.innerHTML = html;
+  }
+
+  // 캘린더 저장(.ics)
+  var ics = root.querySelector('[data-jos-ics]');
+  if (ics) ics.addEventListener('click', function () {
+    var z = function (t) { return new Date(t).toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z'; };
+    var body = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//JEJEUNOSITY//OUTER SPECIAL//KO', 'BEGIN:VEVENT',
+      'UID:outer-special-' + kstDay(OPEN) + '@jejeunosity.co.kr', 'DTSTAMP:' + z(Date.now()),
+      'DTSTART:' + z(OPEN), 'DTEND:' + z(OPEN + 3600e3),
+      'SUMMARY:제제우노시티 아우터 특가전 OPEN', 'DESCRIPTION:KIDS 40–50% · ADULT 최대 38% · 11.01(일)까지 · 한정 수량',
+      'URL:' + location.href.split('?')[0],
+      'BEGIN:VALARM', 'TRIGGER:-PT10M', 'ACTION:DISPLAY', 'DESCRIPTION:아우터 특가전 10분 후 오픈', 'END:VALARM',
+      'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([body], { type: 'text/calendar;charset=utf-8' }));
+    a.download = 'jejeunosity-outer-special.ics';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+
+  // 시계
+  var units = {}, last = '';
+  $$('[data-jos-clock] [data-u]').forEach(function (el) { units[el.getAttribute('data-u')] = el; });
+  function tick() {
+    var now = Date.now(), m = mode(now);
+    if (m !== last) {
+      last = m; root.setAttribute('data-mode', m); tape(m); cal(now);
+      // 오픈 전: 커버 씌운 행거 / 오픈 후: 커버 벗긴 행거
+      var hero = m === 'pre' ? 'hero_' : 'hero_open_';
+      root.querySelector('img[data-jos-hero]').src = C.asset + hero + 'pc.jpg';
+      root.querySelector('source[data-jos-hero]').srcset = C.asset + hero + 'mo.jpg';
+      $$('[data-jos-fin]').forEach(function (el) { el.classList.toggle('jos-lock', m === 'pre' && C.lockPrice); });
+      root.querySelector('[data-jos-clock]').hidden = m === 'end';
+    }
+    $$('[data-jos-dday]').forEach(function (el) { el.textContent = m === 'pre' ? dday(now) : m === 'open' ? 'NOW' : 'END'; });
+    var left = Math.max(0, (m === 'pre' ? OPEN : END) - now) / 1000;
+    if (force === 'open' && now < OPEN) left = (END - OPEN) / 1000; // 미리보기용
+    var p = function (n) { return ('0' + Math.floor(n)).slice(-2); };
+    units.d.textContent = p(left / 86400); units.h.textContent = p(left % 86400 / 3600);
+    units.m.textContent = p(left % 3600 / 60); units.s.textContent = p(left % 60);
+  }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
